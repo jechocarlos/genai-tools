@@ -1,18 +1,18 @@
-from flask import Flask, jsonify, request
+from typing import Union
+
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 from converters import Converter
 
-app = Flask(__name__)
+app = FastAPI()
 
-@app.route("/convert", methods=["POST"])
-def convert():
-    image_base64 = ""
-    if "image_base64" in request.json:
-        image_base64 = request.json["image_base64"]
-    else:
-        return jsonify({"error": "The image is not found"}), 400
+@app.post("/convert")
+def convert(image_base64: Union[str, None] = None):
+    if not image_base64:
+        return JSONResponse(content={"error": "The image is not found"}, status_code=400)
     
     result = Converter.imageToText(image_base64)
     if "error" in result:
-        return jsonify(result), 403 # issue in decoding
-    return jsonify(result), 200
+        return JSONResponse(content=result, status_code=403)
+    return JSONResponse(content=result, status_code=200)
