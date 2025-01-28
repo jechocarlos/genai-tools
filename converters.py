@@ -40,3 +40,27 @@ class Converter:
 
         clean_response = VisionResponse.model_validate_json(llm_response.message.content).json().replace('\"', '"')
         return json.loads(clean_response)
+    
+    async def pdfToText(pdf_file):
+        parser = LlamaParse(
+            api_key='llx-JRsouDmhHGxg4SnaSS3eesQKYGJ5Y5rwL3Y6CecIbrhgFhtk',
+            result_type='markdown',
+            num_workers=4,  # if multiple files passed, split in `num_workers` API calls
+            verbose=True,
+            language="en",  # Optionally you can define a language, default=en
+        )
+        parsed_content = await parser.load_data(pdf_file.read())
+
+        return parsed_content
+    
+    def parse_multimodal(file, parser):
+        file_extension = file.filename.split(".")[-1]
+        # write file locally
+        filename = f"{md5(file.filename.encode()).hexdigest()}.{file_extension}"
+        with open(filename, "wb") as fh:
+            fh.write(file.file.read())
+
+        
+        content = parser.load_data(file_path=filename)
+        print(content)
+        return content[0].to_json()
